@@ -36,7 +36,6 @@ abstract public class SplashManagerMixin {
         splashes.add("Any coords to the farm?");                                 // S: MellDa1024 (GH)
         splashes.add("Ungriefed since 84");                                      // S: Kamigen
 
-        // he didn't deserve this.
         splashes.add("The Work of Notch!");                                      // S: Notch
         splashes.add("Made by Notch!");                                          // S: Notch
     }
