@@ -85,7 +85,7 @@ public class uauth_authentication_service extends YggdrasilAuthenticationService
         String res; T result;
 
         maybe_init();
-        System.out.println(base_url);
+        // System.out.println(base_url);
 
         if (url.toString().endsWith("/join")) {
             try {
