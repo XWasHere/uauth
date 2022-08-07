@@ -2,11 +2,15 @@
   "required": true,
   "minVersion": "0.8",
   "package": "me.xwashere.uauth.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_17",
   "refmap": "uauth.refmap.json",
   "mixins": [
+    "DedicatedServerPropertiesMixin"
   ],
   "client": [
+    "ClientPacketListenerMixin",
+    "SplashManagerMixin",
+    "TitleScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1
