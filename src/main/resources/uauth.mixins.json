@@ -6,9 +6,11 @@
   "refmap": "uauth.refmap.json",
   "mixins": [
     "DedicatedServerPropertiesMixin",
-    "MainMixin"
+    "MainMixin",
+    "ServerLoginPacketListenerImplMixin"
   ],
   "client": [
+    "ClientHandshakePacketListenerImplMixin",
     "ClientPacketListenerMixin",
     "MinecraftMixin",
     "SplashManagerMixin",

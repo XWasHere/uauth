@@ -29,9 +29,9 @@ import java.net.URL;
 import java.util.UUID;
 
 public class uauth_authentication_service extends YggdrasilAuthenticationService {
-    String base_url;
-    URL    join_url;
-    URL    has_joined_url;
+    static String base_url;
+    static URL    join_url;
+    static URL    has_joined_url;
 
     private static final Logger LOGGER = LogUtils.getLogger();
     private Gson gson;
@@ -52,14 +52,21 @@ public class uauth_authentication_service extends YggdrasilAuthenticationService
             .create();
     }
 
-    public void maybe_init() {
-        if (base_url == null) {
-            base_url = config.session_server_url.get();
-            if (base_url.equals("")) base_url = "http://71.90.213.158:81";
+    public static void maybe_init() {
+        if (base_url == null) fill_from_config();
+    }
 
-            join_url = HttpAuthenticationService.constantURL(base_url + "/join");
-            has_joined_url = HttpAuthenticationService.constantURL(base_url + "/has_joined");
-        }
+    public static void fill_from_config() {
+        fill_from_string(config.session_server_url.get());
+    }
+
+    public static void fill_from_string(String s) {
+        base_url = s;
+        if (base_url.equals("")) base_url = "http://71.90.213.158:81";
+
+        join_url = HttpAuthenticationService.constantURL(base_url + "/join");
+        has_joined_url = HttpAuthenticationService.constantURL(base_url + "/has_joined");
+
     }
 
     @Override
@@ -85,7 +92,10 @@ public class uauth_authentication_service extends YggdrasilAuthenticationService
         String res; T result;
 
         maybe_init();
-        // System.out.println(base_url);
+
+        System.out.println(base_url);
+
+        System.out.println("req");
 
         if (url.toString().endsWith("/join")) {
             try {
