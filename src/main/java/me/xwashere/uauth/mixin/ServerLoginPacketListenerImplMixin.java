@@ -1,19 +1,16 @@
 package me.xwashere.uauth.mixin;
 
 import com.mojang.logging.LogUtils;
+import me.xwashere.uauth.config.server_config;
 import me.xwashere.uauth.io.handshake_submode;
-import me.xwashere.uauth.io.ua_begin_c2s;
 import me.xwashere.uauth.io.ua_begin_s2c;
 import me.xwashere.uauth.io.ua_configure_s2c;
 import me.xwashere.uauth.uauth;
-import me.xwashere.uauth.config;
+import me.xwashere.uauth.config.client_config;
 import net.minecraft.network.Connection;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.login.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.network.ServerLoginPacketListenerImpl;
-import net.minecraftforge.network.NetworkDirection;
-import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -93,7 +90,7 @@ public abstract class ServerLoginPacketListenerImplMixin {
                     System.out.println("CLIENT: UA_BEGIN");
 
                     ua_configure_s2c p = new ua_configure_s2c();
-                    if (config.s_session_server_url.get() != "") p.session_server_url = Optional.of(config.s_session_server_url.get());
+                    if (uauth.s_config.session_server_url != "") p.session_server_url = Optional.of(uauth.s_config.session_server_url);
                     connection.send(new ClientboundCustomQueryPacket(0, new ResourceLocation("uauth", "ua_handshake"), p.encode()));
 
                     break;

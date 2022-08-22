@@ -3,23 +3,21 @@ package me.xwashere.uauth.auth;
 import com.google.gson.*;
 import com.mojang.authlib.*;
 import com.mojang.authlib.exceptions.AuthenticationException;
-import com.mojang.authlib.exceptions.UserBannedException;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
-import com.mojang.authlib.minecraft.UserApiService;
 import com.mojang.authlib.properties.PropertyMap;
-import com.mojang.authlib.yggdrasil.ServicesKeyInfo;
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
-import com.mojang.authlib.yggdrasil.YggdrasilEnvironment;
 import com.mojang.authlib.yggdrasil.response.ProfileSearchResultsResponse;
 import com.mojang.authlib.yggdrasil.response.Response;
 import com.mojang.logging.LogUtils;
 import com.mojang.util.UUIDTypeAdapter;
-import me.xwashere.uauth.config;
+import me.xwashere.uauth.config.client_config;
+import me.xwashere.uauth.uauth;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -57,7 +55,11 @@ public class uauth_authentication_service extends YggdrasilAuthenticationService
     }
 
     public static void fill_from_config() {
-        fill_from_string(config.session_server_url.get());
+        fill_from_string(DistExecutor.unsafeRunForDist(() -> () -> {
+            return uauth.c_config.session_server_url != null ? uauth.c_config.session_server_url : "";
+        }, () -> () -> {
+            return uauth.s_config.session_server_url != null ? uauth.s_config.session_server_url : "";
+        }));
     }
 
     public static void fill_from_string(String s) {
@@ -81,13 +83,12 @@ public class uauth_authentication_service extends YggdrasilAuthenticationService
 
     @Override
     protected <T extends Response> T makeRequest(URL url, Object input, Class<T> classOfT, @Nullable String authentication) throws AuthenticationException {
-        AuthenticationException err = null;
-
-        if (uauth_auth_common.mojank) {
-            try {
-                return super.makeRequest(url, input, classOfT, authentication);
-            } catch (AuthenticationException e) { err = e; }
-        }
+        // AuthenticationException err = null;
+        // if (uauth_auth_common.mojank) {
+        //    try {
+        //        return super.makeRequest(url, input, classOfT, authentication);
+        //    } catch (AuthenticationException e) { err = e; }
+        // }
 
         String res; T result;
 
@@ -99,7 +100,9 @@ public class uauth_authentication_service extends YggdrasilAuthenticationService
 
         if (url.toString().endsWith("/join")) {
             try {
+                System.out.println(join_url);
                 if (input == null) throw new AuthenticationException("nu");
+                System.out.println(gson.toJson(input));
 
                 res = performPostRequest(join_url, gson.toJson(input), "application/json");
             } catch (IOException e) { throw new RuntimeException(e); }

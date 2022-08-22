@@ -1,6 +1,7 @@
 package me.xwashere.uauth.mixin;
 
-import me.xwashere.uauth.config;
+import me.xwashere.uauth.config.client_config;
+import me.xwashere.uauth.uauth;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.game.ClientboundServerDataPacket;
 import org.spongepowered.asm.mixin.Mixin;
@@ -18,7 +19,7 @@ abstract public class ClientPacketListenerMixin {
             )
     )
     public boolean disable_chat_toast(ClientboundServerDataPacket instance) {
-        if (config.hide_unsigned_toast.get()) {
+        if (uauth.c_config.hide_unsigned_toast) {
             return true;
         } else {
             return instance.enforcesSecureChat();

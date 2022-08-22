@@ -1,98 +1,80 @@
 package me.xwashere.uauth;
 
 import com.mojang.logging.LogUtils;
+import com.sun.security.auth.login.ConfigFile;
+import me.xwashere.uauth.config.client_config;
+import me.xwashere.uauth.config.server_config;
+import net.minecraft.client.Minecraft;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.dedicated.DedicatedServer;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.ForgeConfig;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLDedicatedServerSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.ModLifecycleEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.fml.loading.targets.FMLServerLaunchHandler;
+import net.minecraftforge.fml.mclanguageprovider.MinecraftModContainer;
+import net.minecraftforge.fml.server.ServerMain;
 import net.minecraftforge.network.simple.SimpleChannel;
+import net.minecraftforge.server.loading.ServerModLoader;
 import org.slf4j.Logger;
+
+import java.io.IOException;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(uauth.MODID)
 public class uauth {
     public static final String MODID = "uauth";
-
-    public static SimpleChannel SERVERIO = null;
-
     private static final Logger LOGGER = LogUtils.getLogger();
+
+    public static String c_config_path = null;
+    public static client_config c_config = null;
+
+    public static String s_config_path = null;
+    public static server_config s_config = null;
 
     public uauth() {
         IEventBus eb = FMLJavaModLoadingContext.get().getModEventBus();
 
         MinecraftForge.EVENT_BUS.register(this);
 
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, config.CFG_CLIENT, "ua_client.toml");
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, config.CFG_SERVER, "ua_server.toml");
+        eb.addListener(this::on_client_setup);
+        eb.addListener(this::on_server_setup);
+    }
 
-        /*eb.addListener((FMLCommonSetupEvent ev) -> {
-            int id = 0;
+    public void on_client_setup(FMLClientSetupEvent ev) {
+        LOGGER.info("loading client config");
+        c_config = client_config.read(c_config_path = FMLPaths.CONFIGDIR.get().toString() + "/ua_client.json");
 
-            SERVERIO = NetworkRegistry.newSimpleChannel(
-                new ResourceLocation(MODID, "ua_handshake"),
-                () -> "1",
-                (String ver) -> {
-                    System.out.println("SERVER: " + ver);
-                    return true;
-                },
-                (String ver) -> {
-                    System.out.println("CLIENT: " + ver);
-                    return true;
-                }
-            );
+        try {
+            c_config.write(c_config_path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-            SERVERIO.registerMessage(id++, ua_begin_s2c.class,
-                (p, buf) -> {
-                    buf.writeByte(0);
-                },
-                (buf) -> {
-                    return new ua_begin_s2c();
-                },
-                (p, ctx) -> {
-                    LOGGER.info("SERVER: UA_BEGIN_S2C");
-                    ctx.get().enqueueWork(()->{
-                        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-                            SERVERIO.sendTo(new ua_begin_c2s(), ctx.get().getNetworkManager(), NetworkDirection.LOGIN_TO_SERVER);
-                        });
-                    });
-                    ctx.get().setPacketHandled(true);
-                },
-                Optional.of(NetworkDirection.LOGIN_TO_CLIENT)
-            );
+    public void on_server_setup(FMLDedicatedServerSetupEvent ev) {
+        LOGGER.info("loading server config");
+        s_config = server_config.read(s_config_path = FMLPaths.CONFIGDIR.get().toString() + "/ua_server.json");
 
-            SERVERIO.registerMessage(id++, ua_begin_c2s.class,
-                (p, buf) -> {
-                    buf.writeChar('a');
-                    buf.writeChar('b');
-                    buf.writeChar('c');
-                },
-                (buf) -> {
-                    return new ua_begin_c2s();
-                },
-                (p, ctx) -> {
-                    LOGGER.info("CLIENT: UA_BEGIN_C2S");
-                    ctx.get().enqueueWork(()->{
-                        // SERVERIO.sendTo(p, ctx.get().getNetworkManager(), NetworkDirection.LOGIN_TO_CLIENT);
-                    });
-                    ctx.get().setPacketHandled(true);
-                },
-                Optional.of(NetworkDirection.LOGIN_TO_SERVER)
-            );
+        if (s_config.session_server_url != null) LOGGER.info("session server set to \"" + s_config.session_server_url + "\"");
 
-            SERVERIO.registerMessage(id++, ua_trust_s2c.class,
-                (p, buf) -> {
-                    buf.writeByte(1);
-                },
-                (buf) -> {
-                    return null;
-                },
-                (p, ctx) -> {
-                    LOGGER.info("SERVER: UA_TRUST_S2C: SS_URL: " + p);
-                    ctx.get().setPacketHandled(true);
-                }
-            );
-        });*/
+        try {
+            s_config.write(s_config_path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
